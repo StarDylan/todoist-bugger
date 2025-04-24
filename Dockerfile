@@ -15,4 +15,4 @@ RUN uv sync --locked
 COPY . .
 
 # Run the application
-CMD ["uv", "run", "app.py"] 
+CMD ["uv", "run", "main.py"] 
