@@ -8,6 +8,7 @@ from todoist_api_python.api import TodoistAPI
 from dotenv import load_dotenv
 import logging
 from pythonjsonlogger import jsonlogger
+import sys
 
 def setup_logging(use_json: bool):
     """Configure logging based on the specified format."""
@@ -31,6 +32,17 @@ def setup_logging(use_json: bool):
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
     return logger
+
+def validate_environment():
+    """Validate that all required environment variables are present."""
+    required_vars = ['TODOIST_API_TOKEN', 'DISCORD_WEBHOOK_URL']
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    
+    if missing_vars:
+        logger.error("Missing required environment variables", extra={'missing_vars': missing_vars})
+        print(f"Error: Missing required environment variables: {', '.join(missing_vars)}")
+        print("Please ensure all required variables are set in your .env file")
+        sys.exit(1)
 
 # Load environment variables
 load_dotenv()
@@ -95,6 +107,9 @@ def main():
     global logger
     logger = setup_logging(args.json_logging)
     logger.info("Starting application", extra={'check_now': args.check_now, 'json_logging': args.json_logging})
+
+    # Validate environment variables
+    validate_environment()
 
     if args.check_now:
         result = check_planned_day()
