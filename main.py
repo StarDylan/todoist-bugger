@@ -118,7 +118,7 @@ def main():
 
     # Schedule the check to run every hour between 7 PM and 10 PM
     for hour in range(19, 23):  # 7 PM to 10 PM
-        schedule.every().day.at(f"{hour:02d}:00").do(check_planned_day)
+        schedule.every().day.at(f"{hour:02d}:00", "America/Los_Angeles").do(check_planned_day)
         logger.info(f"Scheduled check for {hour:02d}:00")
     
     logger.info("Entering main scheduling loop")
