@@ -2,13 +2,11 @@ import os
 import schedule
 import time
 import argparse
-from datetime import datetime, timedelta
 import requests
 from todoist_api_python.api import TodoistAPI
 from dotenv import load_dotenv
 import logging
 from pythonjsonlogger import jsonlogger
-import sys
 
 def setup_logging(use_json: bool):
     """Configure logging based on the specified format."""
@@ -41,8 +39,7 @@ def validate_environment():
     if missing_vars:
         logger.error("Missing required environment variables", extra={'missing_vars': missing_vars})
         print(f"Error: Missing required environment variables: {', '.join(missing_vars)}")
-        print("Please ensure all required variables are set in your .env file")
-        sys.exit(1)
+        print("Please ensure all required variables are set")
 
 # Load environment variables
 load_dotenv()
@@ -95,7 +92,7 @@ def send_discord_notification(missing_tasks):
         response.raise_for_status()
         logger.info("Discord notification sent successfully")
     except requests.exceptions.RequestException as e:
-        logger.error("Failed to send Discord notification", exc_info=True)
+        logger.error(f"Failed to send Discord notification: {e}", exc_info=True)
 
 def main():
     parser = argparse.ArgumentParser(description='Check Todoist tasks for planned day')
