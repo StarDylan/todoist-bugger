@@ -38,8 +38,10 @@ def validate_environment():
     
     if missing_vars:
         logger.error("Missing required environment variables", extra={'missing_vars': missing_vars})
-        print(f"Error: Missing required environment variables: {', '.join(missing_vars)}")
-        print("Please ensure all required variables are set")
+        logger.error("Please ensure all required variables are set")
+        return False
+
+    return True
 
 # Load environment variables
 load_dotenv()
@@ -106,7 +108,12 @@ def main():
     logger.info("Starting application", extra={'check_now': args.check_now, 'json_logging': args.json_logging})
 
     # Validate environment variables
-    validate_environment()
+    success = validate_environment()
+
+    if not success:
+        # sleep forever
+        logger.error("Sleeping forever due to missing environment variables")
+        time.sleep(9999999)
 
     if args.check_now:
         result = check_planned_day()
