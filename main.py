@@ -1,12 +1,11 @@
 import os
-import schedule
-import time
 import argparse
 import requests
 from todoist_api_python.api import TodoistAPI
 from dotenv import load_dotenv
 import logging
 from pythonjsonlogger import jsonlogger
+import sys
 
 def setup_logging(use_json: bool):
     """Configure logging based on the specified format."""
@@ -72,8 +71,8 @@ def check_planned_day():
     })
     
     if missing_tasks:
-        send_discord_notification(missing_tasks)
         logger.info("Missing required tasks for tomorrow", extra={'missing_tasks': list(missing_tasks)})
+        send_discord_notification(missing_tasks)
         return False
     logger.info("All required tasks are planned for tomorrow")
     return True
@@ -98,37 +97,25 @@ def send_discord_notification(missing_tasks):
 
 def main():
     parser = argparse.ArgumentParser(description='Check Todoist tasks for planned day')
-    parser.add_argument('--check-now', action='store_true', help='Run a single check and exit')
     parser.add_argument('--json-logging', action='store_true', help='Use JSON structured logging')
     args = parser.parse_args()
 
     # Setup logging based on the flag
     global logger
     logger = setup_logging(args.json_logging)
-    logger.info("Starting application", extra={'check_now': args.check_now, 'json_logging': args.json_logging})
+    logger.info("Starting application", extra={'json_logging': args.json_logging})
 
     # Validate environment variables
     success = validate_environment()
 
     if not success:
-        # sleep forever
-        logger.error("Sleeping forever due to missing environment variables")
-        time.sleep(9999999)
-
-    if args.check_now:
-        result = check_planned_day()
-        logger.info("Single check completed", extra={'all_tasks_planned': result})
+        logger.error("Exiting due to missing environment variables")
+        sys.exit(1)
         return
 
-    # Schedule the check to run every hour between 7 PM and 10 PM
-    for hour in range(19, 23):  # 7 PM to 10 PM
-        schedule.every().day.at(f"{hour:02d}:00", "America/Los_Angeles").do(check_planned_day)
-        logger.info(f"Scheduled check for {hour:02d}:00")
-    
-    logger.info("Entering main scheduling loop")
-    while True:
-        schedule.run_pending()
-        time.sleep(60)  # Check every minute
+    # Run a single check
+    result = check_planned_day()
+    logger.info("Check completed", extra={'all_tasks_planned': result})
 
 if __name__ == "__main__":
     main() 
